@@ -1,8 +1,27 @@
 ---
-title: "Modele_Presentation"
+title: "Presentation du Modele"
 author: "Benzico Pierre & Alexandro Disla"
 format: pptx
 ---
+
+```{r source, eval = T, echo=F,warning = T, message = F}
+rm(list = ls())
+require(TSstudio)
+require(tseries)
+require(readxl)
+require(writexl)
+require(vars)
+require(stargazer)
+require(knitr)
+require(kableExtra)
+require(dplyr)
+#require(magick)
+require(gt)
+```
+
+
+
+# Presentation des donnees
 
 ## Quarto
 
@@ -14,6 +33,8 @@ When you click the **Render** button a document will be generated that includes:
 
 -   Content authored with markdown
 -   Output from executable code
+
+# Analyse Descriptive
 
 ## Code
 
