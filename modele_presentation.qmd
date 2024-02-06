@@ -2,7 +2,6 @@
 title: "Modele_Presentation"
 author: "Benzico Pierre & Alexandro Disla"
 format: pptx
-editor: visual
 ---
 
 ## Quarto
@@ -23,3 +22,4 @@ When you click the **Render** button a presentation will be generated that inclu
 ```{r}
 1 + 1
 ```
+
