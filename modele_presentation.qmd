@@ -264,37 +264,351 @@ L.table.donnee=LDATA%>%
 L.table.donnee
 ```
 
-# Analyse Graphiques
 
 ```{r setup time series format, eval = T, echo=F,warning = T, message = F}
 LDATA_TS = ts(LDATA,start=c(1988),end=c(2022),frequency = 1)
 DATA_TS = ts(DATA,start=c(1988),end=c(2022),frequency = 1)
 ```
 
-## Graphes des donnees Brutes
+# Analyse graphiques evolution des series allant de 1988 a 2022
 
-```{r brut plot}
-ts_plot(DATA_TS, title = "Evolution des series allant de 1988 a 2022",
+## Taux de Change
+```{r tx.c brut plot}
+
+ts_plot(DATA_TS[,1],title="Taux de change",
   Xgrid=T,
   Ygrid=T,
+  type = "single",
   line.mode = "lines+markers",
-  type = "multiple",
-  width = 3
+  color = "green"
 )%>%
 plotly::layout(
   yaxis=list(
     showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="tx.change"
+    )
   )
 )
 ```
 
-## Graphes des donnees en Logarithme Neperien
-
-```{r plot log}
-ts_plot(LDATA_TS, title = "Evolution des series (en LN) allant de 1988 a 2022",
+## Importation
+```{r Imp brut plot}
+ts_plot(DATA_TS[,2],title="Importation",
   Xgrid=T,
   Ygrid=T,
-  type = "multiple"
+  line.mode = "lines+markers",
+  type = "single"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="imp"
+    )
+  )
 )
 ```
 
+## Exportation
+```{r exp brut plot}
+ts_plot(DATA_TS[,3],title="Exportation",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+  color = "red"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="exp"
+    )
+  )
+)
+```
+
+## PIB
+```{r pib brut data plot}
+ts_plot(DATA_TS[,4],title="PIB",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib"
+    )
+  )
+)
+```
+
+## PIB USA
+```{r pib.usa brut plot}
+ts_plot(DATA_TS[,5],title="PIB USA",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib.usa"
+    )
+  )
+)
+```
+
+## IPc
+```{r ipc brut plot}
+ts_plot(DATA_TS[,6],title="IPC",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="ipc"
+    )
+  )
+)
+
+```
+
+# Analyse graphiques evolution des series en Logarithme Neperien allant de 1988 a 2022
+
+## Taux de Change
+```{r tx.c LN plot}
+
+ts_plot(LDATA_TS[,1],title="Taux de change",
+  Xgrid=T,
+  Ygrid=T,
+  type = "single",
+  line.mode = "lines+markers",
+  color = "green"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="tx.change"
+    )
+  )
+)
+```
+
+## Importation
+```{r Imp LN plot}
+ts_plot(LDATA_TS[,2],title="Importation",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="imp"
+    )
+  )
+)
+```
+
+## Exportation
+```{r exp LN plot}
+ts_plot(LDATA_TS[,3],title="Exportation",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+  color = "red"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="exp"
+    )
+  )
+)
+```
+
+## PIB
+```{r pib LN data plot}
+ts_plot(LDATA_TS[,4],title="PIB",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib"
+    )
+  )
+)
+```
+
+## PIB USA
+```{r pib.usa LN plot}
+ts_plot(LDATA_TS[,5],title="PIB USA",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib.usa"
+    )
+  )
+)
+```
+
+## IPc
+```{r ipc LN plot}
+ts_plot(LDATA_TS[,6],title="IPC",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="ipc"
+    )
+  )
+)
+
+```
+
+# Choix de la Transformation en Log des series
+
+## Litterature des series en Log
+
+<p style="font-size:10px;">
+Dans la littérature économétrique sur les séries temporelles, la transformation en logarithme naturel (LN) est souvent utilisée pour plusieurs raisons principales :
+</p>
+
+<p style="font-size:10px;">
+1. **Stabilisation de la variance** : Les séries temporelles peuvent souvent présenter des variations importantes dans leur variance au fil du temps, ce qui peut rendre difficile l'application de techniques statistiques classiques. En prenant le logarithme des valeurs, on réduit généralement l'amplitude des variations de la série, ce qui peut rendre la variance plus stable et faciliter l'analyse.
+</p>
+
+<p style="font-size:10px;">
+2. **Linéarisation des tendances multiplicatives** : Si une série temporelle présente une tendance qui augmente ou diminue de manière exponentielle, prendre le logarithme peut linéariser cette tendance, ce qui permet d'appliquer des modèles linéaires plus simples et plus interprétables. Par exemple, si une série a une croissance exponentielle, la transformation en logarithme peut la transformer en une croissance linéaire.
+</p>
+
+<p style="font-size:10px;">
+3. **Interprétation des variations relatives** : En prenant le logarithme des valeurs, les variations absolues dans les séries temporelles sont transformées en variations relatives, ce qui peut être plus pertinent dans certains contextes économiques. Par exemple, une variation de 0,1 sur une série avec une valeur initiale de 1 aura un effet différent de la même variation sur une série avec une valeur initiale de 100. Les transformations en logarithme permettent de rendre ces variations comparables et plus facilement interprétables.
+</p>
+
+<p style="font-size:10px;">
+4. **Normalisation des distributions** : Dans certains cas, les données peuvent être fortement asymétriques ou présenter des distributions non normales. La transformation en logarithme peut aider à se rapprocher d'une distribution normale, ce qui peut être utile pour l'application de certaines techniques statistiques qui supposent une distribution normale des données.
+</p>
+
+<p style="font-size:10px;">
+En résumé, les transformations en logarithme sont largement utilisées dans l'analyse des séries temporelles pour stabiliser la variance, linéariser les tendances, faciliter l'interprétation des variations relatives et normaliser les distributions, ce qui rend l'analyse et la modélisation des données plus robustes et interprétables.
+</p>
+
+# Analyse Descriptive des Series en transformation LN
+
+
+
+```{r descriptive}
+LDATA_DESCRIPTION = psych::describe(LDATA)
+LDATA_DESCRIPTION = subset(LDATA_DESCRIPTION, select=-c(vars,n,trimmed,mad,range,se))
+LDATA_DESCRIPTION = rename(LDATA_DESCRIPTION, "std. dev."= sd, "skewness"=skew)
+```
+
+```{r jacques.Bera}
+LJB_txc = jarque.bera.test(LDATA$tx.change)
+LJB_imp = jarque.bera.test(LDATA$imp)
+LJB_exp = jarque.bera.test(LDATA$exp)
+LJB_pib = jarque.bera.test(LDATA$pib)
+LJB_pibusa = jarque.bera.test(LDATA$pib.usa)
+LJB_ipc = jarque.bera.test(LDATA$ipc)
+
+LND = data.frame(
+  Jarque.Bera=c(
+    LJB_txc$statistic,
+    LJB_imp$statistic,
+    LJB_exp$statistic,
+    LJB_pib$statistic,
+    LJB_pibusa$statistic,
+    LJB_ipc$statistic
+  ), 
+  Probability=c(
+    LJB_txc$p.value,
+    LJB_imp$p.value,
+    LJB_exp$p.value,
+    LJB_pib$p.value,
+    LJB_pibusa$p.value,
+    LJB_ipc$p.value
+  )
+)
+row.names(LND) = c("Taux.Change","Importation","Exportation","PIB","PIB.USA","IPC")
+```
+
+```{r merge}
+LDATA_DESCRIPTION$Jarque.Bera = LND$Jarque.Bera
+LDATA_DESCRIPTION$Probability = LND$Probability
+row.names(LDATA_DESCRIPTION) = c("Taux.Change","Importation","Exportation","PIB","PIB.USA","IPC")
+```
+
+
+## Indicateurs statistiques des variables utilisees dans la modelisation econometrique
+```{r table description}
+DTD = LDATA_DESCRIPTION %>% gt(
+  rowname_col = c("Taux.Change","Importation","Exportation","PIB","PIB.USA","IPC"),
+  rownames_to_stub = T
+)%>%
+  #tab_header(title = md("**Table 3** Indicateurs statistiques des variables utilisees dans la modelisation econometrique")) %>%
+  tab_source_note(
+    source_note = md("*Note: Observations= 35, p-value treshold=0.05*")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Indicateurs calcules par l'auteur avec R")
+  )
+  
+DTD
+```
