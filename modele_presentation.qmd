@@ -3,7 +3,9 @@ title: "Presentation du Modele"
 author: "Benzico Pierre & Alexandro Disla"
 format: pptx
 incremental: true
-fontsize: 12px
+theme: simplex
+fontsize: 0.5em
+linestretch: 1.5
 ---
 
 ```{r source, eval = T, echo=F,warning = T, message = F}
