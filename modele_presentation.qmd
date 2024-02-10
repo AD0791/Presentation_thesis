@@ -1,9 +1,9 @@
 ---
 title: "Presentation du Modele"
 author: "Benzico Pierre & Alexandro Disla"
-format: 
-    pptx: 
-        incremental: true
+format: pptx
+incremental: true
+fontsize: 12px
 ---
 
 ```{r source, eval = T, echo=F,warning = T, message = F}
@@ -526,29 +526,23 @@ plotly::layout(
 
 ## Litterature des series en Log
 
-<p style="font-size:10px;">
+
 Dans la littérature économétrique sur les séries temporelles, la transformation en logarithme naturel (LN) est souvent utilisée pour plusieurs raisons principales :
-</p>
 
-<p style="font-size:10px;">
+
 1. **Stabilisation de la variance** : Les séries temporelles peuvent souvent présenter des variations importantes dans leur variance au fil du temps, ce qui peut rendre difficile l'application de techniques statistiques classiques. En prenant le logarithme des valeurs, on réduit généralement l'amplitude des variations de la série, ce qui peut rendre la variance plus stable et faciliter l'analyse.
-</p>
 
-<p style="font-size:10px;">
+
 2. **Linéarisation des tendances multiplicatives** : Si une série temporelle présente une tendance qui augmente ou diminue de manière exponentielle, prendre le logarithme peut linéariser cette tendance, ce qui permet d'appliquer des modèles linéaires plus simples et plus interprétables. Par exemple, si une série a une croissance exponentielle, la transformation en logarithme peut la transformer en une croissance linéaire.
-</p>
 
-<p style="font-size:10px;">
+
 3. **Interprétation des variations relatives** : En prenant le logarithme des valeurs, les variations absolues dans les séries temporelles sont transformées en variations relatives, ce qui peut être plus pertinent dans certains contextes économiques. Par exemple, une variation de 0,1 sur une série avec une valeur initiale de 1 aura un effet différent de la même variation sur une série avec une valeur initiale de 100. Les transformations en logarithme permettent de rendre ces variations comparables et plus facilement interprétables.
-</p>
 
-<p style="font-size:10px;">
+
 4. **Normalisation des distributions** : Dans certains cas, les données peuvent être fortement asymétriques ou présenter des distributions non normales. La transformation en logarithme peut aider à se rapprocher d'une distribution normale, ce qui peut être utile pour l'application de certaines techniques statistiques qui supposent une distribution normale des données.
-</p>
 
-<p style="font-size:10px;">
+
 En résumé, les transformations en logarithme sont largement utilisées dans l'analyse des séries temporelles pour stabiliser la variance, linéariser les tendances, faciliter l'interprétation des variations relatives et normaliser les distributions, ce qui rend l'analyse et la modélisation des données plus robustes et interprétables.
-</p>
 
 # Analyse Descriptive des Series en transformation LN
 
