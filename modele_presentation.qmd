@@ -670,7 +670,117 @@ Il est important de choisir un seuil de signification approprié (α) avant d'in
 
 # La stationarite des Variable (LN)
 
-## Les series en Niveau
+## Procedure
+
+La procedure d'etude de la stationarite demande que l'on procede de stationarite pour les series en niveau. Ensuite on passe le filtre de difference sur les series et on recommence les tests.
+
+## Filtre de difference
+
+Le filtre de différence est une opération couramment utilisée dans l'analyse des séries chronologiques pour transformer une série en une série stationnaire en différenciant les observations. La différenciation implique de soustraire chaque observation de la série par son observation précédente. Cette opération aide à éliminer les tendances et les structures temporelles de la série, rendant ainsi la série stationnaire. Voici comment le filtre de différence est mathématiquement représenté :
+
+Si nous avons une série chronologique $y_t$ pour $t = 1, 2, ..., T$, alors la série de différences premières, notée $\Delta y_t$, est définie comme :
+
+$$\Delta y_t = y_t - y_{t-1}$$
+
+Cette équation montre que chaque observation $y_t$est soustraite de son observation précédente $y_{t-1}$ pour obtenir la différence première $\Delta y_t$. Cela peut être répété pour chaque observation dans la série, créant ainsi une nouvelle série de différences premières avec une longueur de $T - 1$, car la première observation n'a pas de valeur précédente à soustraire.
+
+L'opération de différenciation peut être répétée plusieurs fois si nécessaire pour obtenir une série encore plus stationnaire, en soustrayant chaque observation par son observation précédente dans la série de différences premières. La série résultante est appelée série de différences d'ordre $d$, où $d$ représente le nombre de différences effectuées.
+
+Voici un exemple d'équation LaTeX pour représenter la série de différences premières :
+Cette équation peut être utilisée dans les documents LaTeX pour représenter mathématiquement le concept de différenciation dans l'analyse des séries chronologiques.
+
+## Hypotheses pour les tests de stationnarite
+
+Bien sûr, voici les hypothèses nulles et alternatives pour les tests ADF, KPSS et Phillips-Perron :
+
+1. **Test de Dickey-Fuller Augmenté (ADF)** :
+   - Hypothèse Nulle (H0) : La série chronologique possède une racine unitaire, ce qui signifie qu'elle n'est pas stationnaire.
+   - Hypothèse Alternative (H1) : La série chronologique ne possède pas de racine unitaire, ce qui signifie qu'elle est stationnaire.
+
+2. **Test KPSS (Kwiatkowski-Phillips-Schmidt-Shin)** :
+   - Hypothèse Nulle (H0) : La série chronologique est stationnaire.
+   - Hypothèse Alternative (H1) : La série chronologique n'est pas stationnaire.
+
+3. **Test Phillips-Perron** :
+   - Hypothèse Nulle (H0) : La série chronologique possède une racine unitaire, ce qui signifie qu'elle n'est pas stationnaire.
+   - Hypothèse Alternative (H1) : La série chronologique ne possède pas de racine unitaire, ce qui signifie qu'elle est stationnaire.
+
+Il est important de noter que les conclusions des tests dépendent de la p-value associée. Si la p-value est inférieure à un certain seuil (généralement 0,05), on rejette l'hypothèse nulle au profit de l'hypothèse alternative, ce qui signifie que la série est considérée comme stationnaire. Sinon, si la p-value est supérieure au seuil, on ne peut pas rejeter l'hypothèse nulle, ce qui indique que la série n'est pas stationnaire.
 
 
-## Les series en diff premiere
+## Tableau Presentant les resultats des tests de stationnarite
+
+```{r gen res stationarity test}
+
+stationarity_tr = read_xlsx("./stationarity.xlsx")
+
+
+table_stat_tr = stationarity_tr %>%
+  gt()%>%
+  #tab_header(
+  #  title = md("**Table 5** Resultats des test de stationarite utilises")
+  #) %>%
+  tab_source_note(
+    source_note = md("*Note: Observations= 35, p-value treshold=0.05*")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Indicateurs calcule par l'auteur avec R")
+  ) %>%
+  tab_footnote(
+    footnote = md("I(0) signifie que la série est stationnaire alors que I(1) signifie que la série est intégrée d'ordre 1 (non-stationnaire), c'est-
+à-dire elle devient stationnaire en différence première."),
+    locations = cells_body(
+      columns = Constat
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.1 veut dire p.value >= 0.1"),
+    locations = cells_body(
+      columns = KPSS,
+      rows = KPSS==0.1
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.1 veut dire p.value >= 0.1"),
+    locations = cells_body(
+      columns = kpss,
+      rows = kpss==0.1
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.01 veut dire p.value <= 0.01"),
+    locations = cells_body(
+      columns = ADF,
+      rows = ADF==0.01
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.01 veut dire p.value <= 0.01"),
+    locations = cells_body(
+      columns = adf,
+      rows = adf==0.01
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.01 veut dire p.value <= 0.01"),
+    locations = cells_body(
+      columns = pp,
+      rows = pp==0.01
+    )
+  ) %>%
+  tab_spanner(
+    label = "Niveau",
+    columns = c(ADF, KPSS, PP)
+  ) %>%
+  tab_spanner(
+    label = "Difference Premiere",
+    columns = c(adf, kpss, pp)
+  ) %>%
+  gtsave(filename = "./outputs/res_stationarity.png", expand=10)
+
+```
+
+```{r res table stationarity, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/res_stationarity.png')
+```
+
