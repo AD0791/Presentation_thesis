@@ -4,8 +4,8 @@ author: "Benzico Pierre & Alexandro Disla"
 format: pptx
 incremental: true
 theme: simplex
-fontsize: 0.5em
-linestretch: 1.5
+fontsize: 1em
+linestretch: 1.2
 ---
 
 ```{r source, eval = T, echo=F,warning = T, message = F}
@@ -19,8 +19,12 @@ require(stargazer)
 require(knitr)
 require(kableExtra)
 require(dplyr)
-#require(magick)
+# require(magick)
+require(aTSA)
+require(urca)
+require(ARDL)
 require(gt)
+
 ```
 
 
@@ -55,8 +59,16 @@ cols_align(
     align="left"
 )
 
-metadata
+metadata %>%
+  gtsave(filename = "./outputs/metadata.png", expand=20)
+
 ```
+
+```{r res metadata, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/metadata.png')
+```
+
+
 
 
 ## Tableau Presentant les Donnees Brutes
@@ -151,21 +163,26 @@ table.donnee = DATA%>%
     ),
     rownames_to_stub=TRUE
   )%>%
-  #tab_header(title = md("**Table 1** Tableau des données brutes"))%>%
+  tab_header(title = md("Tableau des données brutes"))%>%
   tab_stubhead(
     label = md("**Year**")
   ) %>%
   tab_source_note(
     source_note = md("**Source:** Banque de la republique d'Haiti")
-  ) %>%
+  )%>%
   tab_options(
-    table.width = pct(200),
-    table.font.size=pct(60),
-    source_notes.font.size = pct(50)
-  ) 
+    table.font.size = px(24),
+    container.width=6000,
+    container.height = 6000
+  )
 
+table.donnee %>%
+  gtsave(filename = "./outputs/table_donnee_brute.png", expand=10)
 
-table.donnee
+```
+
+```{r res table donnee brute, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/table_donnee_brute.png')
 ```
 
 
@@ -251,7 +268,7 @@ L.table.donnee=LDATA%>%
     ),
     rownames_to_stub=TRUE
   )%>%
-  #tab_header(title = md("**Table 2** Tableau des donnees en Logarithm Neperien"))%>%
+  tab_header(title = md("Tableau des donnees en Logarithm Neperien"))%>%
   tab_stubhead(
     label = md("**Year**")
   ) %>%
@@ -259,11 +276,19 @@ L.table.donnee=LDATA%>%
     source_note = md("**Source:** Banque de la republique d'Haiti")
   )%>%
   tab_options(
-    table.width = pct(200),
-    table.font.size=pct(60),
-    source_notes.font.size = pct(50)
-  ) 
-L.table.donnee
+    table.font.size = px(24),
+    container.width=6000,
+    container.height = 6000
+  )
+
+
+L.table.donnee  %>%
+  gtsave(filename = "./outputs/table_donnee.png", expand=10)
+
+```
+
+```{r res table donnee, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/table_donnee.png')
 ```
 
 
@@ -548,7 +573,7 @@ En résumé, les transformations en logarithme sont largement utilisées dans l'
 
 # Analyse Descriptive des Series en transformation LN
 
-
+## Indicateurs statistiques des variables utilisees dans la modelisation econometrique
 
 ```{r descriptive}
 LDATA_DESCRIPTION = psych::describe(LDATA)
@@ -592,8 +617,8 @@ row.names(LDATA_DESCRIPTION) = c("Taux.Change","Importation","Exportation","PIB"
 ```
 
 
-## Indicateurs statistiques des variables utilisees dans la modelisation econometrique
-```{r table description}
+
+```{r gen table description}
 DTD = LDATA_DESCRIPTION %>% gt(
   rowname_col = c("Taux.Change","Importation","Exportation","PIB","PIB.USA","IPC"),
   rownames_to_stub = T
@@ -606,8 +631,15 @@ DTD = LDATA_DESCRIPTION %>% gt(
     source_note = md("**Source:** Indicateurs calcules par l'auteur avec R")
   )
   
-DTD
+DTD  %>%
+  gtsave(filename = "./outputs/table_description.png", expand=10)
+
 ```
+
+```{r table description, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/table_description.png')
+``` 
+
 
 ## Jarque Bera test
 
@@ -688,6 +720,8 @@ L'opération de différenciation peut être répétée plusieurs fois si nécess
 
 Voici un exemple d'équation LaTeX pour représenter la série de différences premières :
 Cette équation peut être utilisée dans les documents LaTeX pour représenter mathématiquement le concept de différenciation dans l'analyse des séries chronologiques.
+
+# Resultats et Hypotheses test Stationarites
 
 ## Hypotheses pour les tests de stationnarite
 
@@ -784,3 +818,137 @@ table_stat_tr = stationarity_tr %>%
 knitr::include_graphics('./outputs/res_stationarity.png')
 ```
 
+# Maximum Lag Analysis
+
+## Information Criterion
+Les critères d'information sont des outils utilisés en statistiques pour sélectionner un modèle parmi un ensemble de modèles candidats. L'objectif est de choisir le modèle qui offre un bon équilibre entre l'ajustement aux données et la complexité du modèle. Les deux critères d'information les plus couramment utilisés sont le Critère d'Information Akaike (AIC) et le Critère d'Information Bayésien (BIC). Voici une explication de ces deux critères :
+
+1. **Critère d'Information Akaike (AIC)** :
+   - Le Critère d'Information Akaike (AIC) a été développé par Hirotugu Akaike dans les années 1970. Il est basé sur la théorie de l'information et est largement utilisé pour comparer des modèles statistiques.
+   - L'AIC est calculé à partir de la fonction de vraisemblance du modèle et de sa complexité, mesurée par le nombre de paramètres du modèle. L'AIC est défini comme :
+   $$\text{AIC} = -2 \times \text{log-vraisemblance maximisée} + 2 \times \text{nombre de paramètres du modèle}$$
+   - Le modèle avec le plus faible AIC est considéré comme le meilleur ajustement parmi les modèles considérés.
+
+2. **Critère d'Information Bayésien (BIC)** :
+   - Le Critère d'Information Bayésien (BIC), également connu sous le nom de Critère de Schwarz, a été développé par Gideon Schwarz dans les années 1970. Il est basé sur la théorie bayésienne de la probabilité.
+   - Comme l'AIC, le BIC prend en compte à la fois l'ajustement aux données et la complexité du modèle. Cependant, le BIC pénalise la complexité du modèle plus fortement que l'AIC.
+   - Le BIC est calculé comme suit :
+   $$\text{BIC} = -2 \times \text{log-vraisemblance maximisée} + \log(n) \times \text{nombre de paramètres du modèle}$$
+   où $ n $ est la taille de l'échantillon.
+   - Comme pour l'AIC, le modèle avec le plus faible BIC est considéré comme le meilleur ajustement parmi les modèles considérés.
+
+En résumé, les critères d'information, tels que l'AIC et le BIC, fournissent une approche objective pour comparer différents modèles statistiques en tenant compte à la fois de leur ajustement aux données et de leur complexité. Ces critères sont largement utilisés dans la sélection de modèles en statistiques et en apprentissage automatique.
+
+```{r les bases de notre modele}
+application.du.filtre = lapply(LDATA, diff)
+LFILTER_DATA = as.data.frame(application.du.filtre)
+
+
+
+it.series <- cbind(taux.change = LDATA$tx.change, importation = LDATA$imp,pib=LDATA$pib,pib.usa=LDATA$pib.usa,ipc=LDATA$ipc)
+et.series <- cbind(taux.change = LDATA$tx.change, exportation = LDATA$exp,pib=LDATA$pib,pib.usa=LDATA$pib.usa,ipc=LDATA$ipc)
+it.series <- as.data.frame(it.series)
+et.series <- as.data.frame(et.series)
+
+
+
+filtered.it.series <- cbind(taux.change = LFILTER_DATA$tx.change, importation = LFILTER_DATA$imp,pib=LFILTER_DATA$pib,pib.usa=LFILTER_DATA$pib.usa,ipc=LFILTER_DATA$ipc)
+filtered.et.series <- cbind(taux.change = LFILTER_DATA$tx.change, exportation = LFILTER_DATA$exp,pib=LFILTER_DATA$pib,pib.usa=LFILTER_DATA$pib.usa,ipc=LFILTER_DATA$ipc)
+filtered.it.series <- as.data.frame(filtered.it.series)
+filtered.et.series <- as.data.frame(filtered.et.series)
+```
+
+## Max Lag Importation
+```{r ardl max it}
+modIT = auto_ardl(importation~taux.change+pib+pib.usa+ipc,data=it.series,max_order = 3,selection = "AIC", grid = T)
+#modIT$best_model$full_formula
+#modIT$best_order
+ic.it = modIT$top_orders
+```
+
+
+```{r table ic.it}
+table.ic.it  = ic.it%>%
+  gt()%>%
+  tab_header(
+    title = md("Top 12 des modeles optimaux sur le critere de minimisation d'AIC")
+  )%>%
+  cols_align(
+    align = "center",
+    columns = c(importation, taux.change,pib, pib.usa,ipc)
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote( footnote = md("Akaike Information Criteria"),
+    locations = cells_body(
+      columns = AIC
+    )
+  )
+
+
+
+table.ic.it %>%
+    gtsave(filename = "./outputs/optimal_selection_AIC_IT.png", expand=10)
+
+```
+
+```{r res table ic.it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/optimal_selection_AIC_IT.png')
+```
+
+
+
+
+## Max Lag Expportation
+
+```{r ardl max et}
+modET = auto_ardl(exportation~taux.change+pib+pib.usa+ipc,data=et.series,max_order = 3,selection = "AIC", grid = T)
+#modET$best_model$full_formula
+#modET$best_order
+ic.et = modET$top_orders
+```
+
+```{r table ic.et }
+table.ic.et  = ic.et%>%
+  gt()%>%
+  tab_header(
+    title = md("Top 12 des modeles optimaux sur le critere de minimisation d'AIC")
+  )%>%
+  cols_align(
+    align = "center",
+    columns = c(exportation, taux.change,pib,pib.usa,ipc)
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("Akaike Information Criteria"),
+    locations = cells_body(
+      columns = AIC
+    )
+  )
+
+
+
+table.ic.et %>%
+    gtsave(filename = "./outputs/optimal_selection_AIC_ET.png", expand=10)
+```
+
+```{r res table.ic.et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/optimal_selection_AIC_ET.png')
+```
+
+
+# Modelisation
+
+## Maximum Lag - Bound orders
+
+## Peasaran cointegration test
+
+## modele it
+
+## modele et
+
+## Validation modeles
+
+## Addtitionnelle test
