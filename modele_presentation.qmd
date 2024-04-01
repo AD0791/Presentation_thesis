@@ -25,6 +25,10 @@ require(urca)
 require(ARDL)
 require(gt)
 
+
+require(dLagM)
+
+
 ```
 
 
@@ -859,30 +863,39 @@ filtered.et.series <- as.data.frame(filtered.et.series)
 ```
 
 ## Max Lag Importation
-```{r ardl max it}
-modIT = auto_ardl(importation~taux.change+pib+pib.usa+ipc,data=it.series,max_order = 3,selection = "AIC", grid = T)
-#modIT$best_model$full_formula
-#modIT$best_order
-ic.it = modIT$top_orders
+```{r it ardlboundorder}
+orders.it.fs = ardlBoundOrders(
+  data = it.series,
+  formula = importation~taux.change+pib+pib.usa+ipc,
+  ic="AIC",
+  max.p = 3 ,
+  max.q = 3,
+  FullSearch = TRUE
+)
 ```
 
+```{r frame it}
+ic.it = as.data.frame(orders.it.fs$p)
+ic.it$importation = c(orders.it.fs$q)
+ic.it$aic = c(orders.it.fs$min.Stat)
+```
 
 ```{r table ic.it}
 table.ic.it  = ic.it%>%
   gt()%>%
   tab_header(
-    title = md("Top 12 des modeles optimaux sur le critere de minimisation d'AIC")
+    title = md("Top resultat des modeles optimaux suivant le critere de minimisation d'AIC")
   )%>%
   cols_align(
     align = "center",
-    columns = c(importation, taux.change,pib, pib.usa,ipc)
+    columns = c(importation, taux.change,pib, pib.usa,ipc,aic)
   )%>%
   tab_source_note(
     source_note = md("**Source:** Tableau elabore par l'auteur avec R")
   ) %>%
   tab_footnote( footnote = md("Akaike Information Criteria"),
     locations = cells_body(
-      columns = AIC
+      columns = aic
     )
   )
 
@@ -900,31 +913,41 @@ knitr::include_graphics('./outputs/optimal_selection_AIC_IT.png')
 
 
 
-## Max Lag Expportation
+## Max Lag Exportation
 
-```{r ardl max et}
-modET = auto_ardl(exportation~taux.change+pib+pib.usa+ipc,data=et.series,max_order = 3,selection = "AIC", grid = T)
-#modET$best_model$full_formula
-#modET$best_order
-ic.et = modET$top_orders
+```{r et ardlboundorder}
+orders.et.fs = ardlBoundOrders(
+  data = et.series,
+  formula = exportation~taux.change+pib+pib.usa+ipc,
+  ic="AIC",
+  max.p = 3 ,
+  max.q = 3,
+  FullSearch = TRUE
+)
+```
+
+```{r frame et}
+ic.et = as.data.frame(orders.et.fs$p)
+ic.et$exportation = c(orders.et.fs$q)
+ic.et$aic = c(orders.et.fs$min.Stat)
 ```
 
 ```{r table ic.et }
 table.ic.et  = ic.et%>%
   gt()%>%
   tab_header(
-    title = md("Top 12 des modeles optimaux sur le critere de minimisation d'AIC")
+    title = md("Top des modeles optimaux suivant le critere de minimisation d'AIC")
   )%>%
   cols_align(
     align = "center",
-    columns = c(exportation, taux.change,pib,pib.usa,ipc)
+    columns = c(exportation, taux.change,pib,pib.usa,ipc,aic)
   )%>%
   tab_source_note(
     source_note = md("**Source:** Tableau elabore par l'auteur avec R")
   ) %>%
   tab_footnote(footnote = md("Akaike Information Criteria"),
     locations = cells_body(
-      columns = AIC
+      columns = aic
     )
   )
 
@@ -939,16 +962,417 @@ knitr::include_graphics('./outputs/optimal_selection_AIC_ET.png')
 ```
 
 
+# Cointegration
+
+## Peasaran cointegration test (Bound test)
+
+Considérons le modèle ARDL suivant :
+
+$$ \Delta Y_t = \alpha + \beta_1 Y_{t-1} + \beta_2 \Delta Y_{t-1} + \beta_3 \Delta Y_{t-2} + \ldots + \beta_p \Delta Y_{t-p} + \gamma_1 X_{1,t-1} + \gamma_2 \Delta X_{1,t-1} + \ldots + \gamma_q \Delta X_{1,t-q} + \epsilon_t $$
+
+Le ARDL Bound Test implique deux tests de nullité :
+
+1. **Pratiquement un test de Wald:**
+   - Nullité : $\beta_{1} = \beta_{2} = \ldots = \beta_{p} = 0$ (pas de cointégration)
+   - Alternative : Au moins un des coefficients $\beta_{i}$ est différent de zéro (cointégration)
+   - Test statistique : F-test
+   
+```{r boundtest_interp, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./interpretation_boundtest.png')
+```
+
+## test cointegration peasaran (Bound test) IT modele
+
+Pesaran et al. [12] define five different cases according to the incorporation of intercept (μ0) and trend (μ1) coefficients in the error correction term. Case 1: No intercept and no trend. Case 2: Restricted intercept and no trend. Case 3: Unrestricted intercept and no trend. Case 4: Unrestricted intercept and restricted trend. Case 5: Unrestricted intercept and unrestricted trend.
+
+> 4eme cas retenu
+
+```{r boundtest_it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./peasaran.coint.test_it.png')
+```
+
+
+## test cointegration peasaran (Bound test) ET modele
+
+Pesaran et al. [12] define five different cases according to the incorporation of intercept (μ0) and trend (μ1) coefficients in the error correction term. Case 1: No intercept and no trend. Case 2: Restricted intercept and no trend. Case 3: Unrestricted intercept and no trend. Case 4: Unrestricted intercept and restricted trend. Case 5: Unrestricted intercept and unrestricted trend.
+
+> 3eme cas retenu
+
+```{r boundtest_et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./peasaran.coint.test_et.png')
+```
+
+## conclusion Cointegration  test
+
+1. Modele IT:
+  - ECM avec intercept non restreint et une tendance restreinte
+2. Modele ET:
+  -ECM avec intercept non restreint et sans tendance
+
 # Modelisation
-
-## Maximum Lag - Bound orders
-
-## Peasaran cointegration test
 
 ## modele it
 
+```{r p+1}
+P.it = data.frame(orders.it.fs$q,orders.it.fs$p)+1
+P.et = data.frame(orders.et.fs$q,orders.et.fs$p)+1
+```
+
+```{r it.modele, include=F}
+coint.it = ardlBound(
+  data = it.series,
+  formula = importation ~ taux.change+pib+pib.usa+ipc,
+  p = P.it,
+  ECM=TRUE,
+  stability = TRUE,
+  case = 4
+)
+```
+
+
+
+> Error Correction terme = `r coint.it$ECM$EC.beta`
+
+```{r ecm.it}
+summary(coint.it$ECM$EC.model)
+```
+
+
 ## modele et
 
-## Validation modeles
+```{r et.modele, include=F}
+coint.et  = ardlBound(
+  data = et.series,
+  formula = exportation ~ taux.change+pib+pib.usa+ipc,
+  p = P.et,
+  ECM=TRUE,
+  stability = TRUE,
+  case = 3
+)
+```
 
-## Addtitionnelle test
+
+> Error Correction terme = `r coint.et$ECM$EC.beta`
+
+```{r cm.et}
+summary(coint.et$ECM$EC.model)
+```
+
+# Validation des models
+
+## Validation modeles it
+
+```{r val.it}
+val.it = data.frame(
+  test_name = c(
+    "Breush-Pagan test" ,
+    "Breush-Godfrey test",
+    "Ljung-Box test",
+    "Shapiro-Wilk test",
+    "Ramsey test"
+  ),
+  statistic_test = c(
+    coint.it$bp$statistic,
+    coint.it$bg$statistic,
+    coint.it$lb$statistic,
+    coint.it$sp$statistic,
+    1.8727
+  ),
+  pvalue= c(
+    coint.it$bp$p.value,
+    coint.it$bg$p.value,
+    coint.it$lb$p.value,
+    coint.it$sp$p.value,
+    0.196
+  ),
+  H0 = c(
+    "Homoscedasticity is present (the residuals are distributed with equal variance)",
+    "There is no autocorrelation in the residuals",
+    "The model does not exhibit lack of fit.(no serial correlation in the residuals)",
+    "The residuals are normally distributed",
+    "modele est bien specifie et aucune variable n'a ete omise"
+  )
+)
+```
+
+
+```{r valtable it }
+table.val.it  = val.it%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de validation du modele")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.val.it %>%
+    gtsave(filename = "./outputs/VAL.IT.png", expand=10)
+```
+
+```{r restable.it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/VAL.IT.png')
+```
+
+## Validation modeles et
+
+```{r val.et}
+val.et = data.frame(
+  test_name = c(
+    "Breush-Pagan test" ,
+    "Breush-Godfrey test",
+    "Ljung-Box test",
+    "Shapiro-Wilk test",
+    "Ramsey test"
+  ),
+  statistic_test = c(
+    coint.et$bp$statistic,
+    coint.et$bg$statistic,
+    coint.et$lb$statistic,
+    coint.et$sp$statistic,
+    3.1445
+  ),
+  pvalue= c(
+    coint.et$bp$p.value,
+    coint.et$bg$p.value,
+    coint.et$lb$p.value,
+    coint.et$sp$p.value,
+    0.07449
+  ),
+  H0 = c(
+    "Homoscedasticity is present (the residuals are distributed with equal variance)",
+    "There is no autocorrelation in the residuals",
+    "The model does not exhibit lack of fit.(no serial correlation in the residuals)",
+    "The residuals are normally distributed",
+    "modele est bien specifie et aucune variable n'a ete omise"
+  )
+)
+```
+
+
+```{r val.table ic.et }
+table.val.et  = val.et%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de validation du modele")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.val.et %>%
+    gtsave(filename = "./outputs/VAL.ET.png", expand=10)
+```
+
+```{r restable.et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/VAL.ET.png')
+```
+
+## CUSUM it 
+
+```{r cusum.it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./cusum_it.modele.png')
+```
+
+## CUSUM et 
+
+```{r cusum.et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./cusum_et.modele.png')
+```
+
+# Test additionnelle
+
+## test de Normalite des series d'interet
+
+```{r shapiro.series}
+i.sp = shapiro.test(it.series$importation)
+e.sp = shapiro.test(et.series$exportation)
+t.sp = shapiro.test(et.series$taux.change)
+
+shap.series_int = data.frame(
+  Series_name = c(
+    "Importation" ,
+    "exportation",
+    "Taux de Change"
+  ),
+  statistic_test = c(
+    i.sp$statistic,
+    e.sp$statistic,
+    t.sp$statistic
+  ),
+  pvalue= c(
+    i.sp$p.value,
+    e.sp$p.value,
+    t.sp$p.value
+  ),
+  Conclusion = c(
+    "La serie ne suit pas une distribution normal",
+    "La serie ne suit pas une distribution normal",
+    "La serie ne suit pas une distribution normal"
+  )
+)
+```
+
+
+```{r table shapiro.series}
+table.shap.series_int  = shap.series_int%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de normalite pour ces series")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.shap.series_int %>%
+    gtsave(filename = "./outputs/shapiro_series_test.png", expand=10)
+```
+
+```{r shap.series_g, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/shapiro_series_test.png')
+```
+
+
+## Test de Kendall
+
+Donc on peut proceder a un test de correlation de Kendall.
+
+```{r kendall}
+ken.it = cor.test(it.series$taux.change, it.series$importation,method ="kendall",exact=F)
+ken.et = cor.test(et.series$taux.change, et.series$exportation,method ="kendall", exact = F)
+
+kendall_all =data.frame(
+  Series_name = c(
+    "Importation et taux de change" ,
+    "exportation et taux de change"
+  ),
+  statistic_test = c(
+    ken.it$statistic,
+    ken.et$statistic
+  ),
+  pvalue= c(
+    ken.it$p.value,
+    ken.et$p.value
+  ),
+  tau = c(
+    ken.it$estimate,
+    ken.et$estimate
+  ),
+  Conclusion = c(
+    "Tau est non null, Il y a correlation",
+    "Tau est non null, Il y a correlation"
+  )
+)
+```
+
+
+```{r table kendall}
+table.kendall_all  = kendall_all%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de correlation de Kendall")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.kendall_all %>%
+    gtsave(filename = "./outputs/kendall_test.png", expand=10)
+```
+
+```{r kendall_g, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/kendall_test.png')
+```
+
+## Test de Causalite de Ganger
+
+```{r granger}
+g.it = lmtest::grangertest(importation~taux.change,data=it.series,order=3)
+g.ti = lmtest::grangertest(taux.change~importation,data=it.series,order=3)
+
+g.et = lmtest::grangertest(exportation~taux.change,data=et.series,order=3)
+g.te = lmtest::grangertest(taux.change~exportation,data=et.series,order=3)
+
+
+granger_all = data.frame(
+  Series_name = c(
+    "Causalite Imp ~ Tx.c" ,
+    "Causalite Tx.c ~ Imp",
+    "Causalite exp ~ Tx.c" ,
+    "Causalite Tx.c ~ exp"
+  ),
+  statistic_test = c(
+    g.it$F[2],
+    g.ti$F[2],
+    g.et$F[2],
+    g.te$F[2]
+  ),
+  pvalue= c(
+    g.it$`Pr(>F)`[2],
+    g.ti$`Pr(>F)`[2],
+    g.et$`Pr(>F)`[2],
+    g.te$`Pr(>F)`[2]
+  ),
+  Conclusion = c(
+    "H0: pas de causalite",
+    "H0: pas de causalite",
+    "H0: pas de causalite",
+    "H0: pas de causalite"
+  )
+)
+```
+
+
+```{r table granger}
+table.granger_all  = granger_all%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de causalite de granger")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.granger_all %>%
+    gtsave(filename = "./outputs/granger_test.png", expand=10)
+```
+
+```{r granger_g, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/granger_test.png')
+```
+
