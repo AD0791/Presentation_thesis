@@ -1,25 +1,1378 @@
 ---
-title: "Modele_Presentation"
+title: "Presentation du Modele"
 author: "Benzico Pierre & Alexandro Disla"
 format: pptx
+incremental: true
+theme: simplex
+fontsize: 1em
+linestretch: 1.2
 ---
 
-## Quarto
+```{r source, eval = T, echo=F,warning = T, message = F}
+rm(list = ls())
+require(TSstudio)
+require(tseries)
+require(readxl)
+require(writexl)
+require(vars)
+require(stargazer)
+require(knitr)
+require(kableExtra)
+require(dplyr)
+# require(magick)
+require(aTSA)
+require(urca)
+require(ARDL)
+require(gt)
 
-Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
 
-## Bullets
+require(dLagM)
 
-When you click the **Render** button a document will be generated that includes:
 
--   Content authored with markdown
--   Output from executable code
+```
 
-## Code
 
-When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+# Presentation des Donnees
 
-```{r}
-1 + 1
+## Source des Donnees
+
+- tx.change : Taux de Change Reel
+- imp: Importation Haitienne
+- exp: Exportation Haitienne
+- pib: Produit Interieur Brute Haitienne
+- pib.usa: Produit Interieur Brute des Etats Unis
+- ipc: L'indice des prix a la Consommation
+
+## Tableau des metadonnees
+
+```{r metadata}
+METADATA= read_excel("./data_sources.xlsx",sheet="metadata") %>% as.data.frame()
+colnames(METADATA) = c("Variable","Specificite","Periode","Notes")
+metadata <- METADATA %>%
+gt() %>%
+#tab_header(title = md("**Tableau** des metadonnées")) %>% 
+tab_options(
+    table.width = pct(100)
+) %>%
+cols_align(
+    columns=c("Specificite", "Periode","Notes"),
+    align="right"
+)%>%
+cols_align(
+    columns=Variable,
+    align="left"
+)
+
+metadata %>%
+  gtsave(filename = "./outputs/metadata.png", expand=20)
+
+```
+
+```{r res metadata, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/metadata.png')
+```
+
+
+
+
+## Tableau Presentant les Donnees Brutes
+
+```{r get_data, eval = T, echo=F,warning = T, message = F}
+base.data = read_excel("./data_sources.xlsx",sheet = "data")
+DATA = subset(base.data,select=-annee) 
+DATA = DATA%>% as.data.frame()
+LDATA = DATA 
+LDATA = LDATA %>%
+  lapply(log)%>%
+  as.data.frame()
+```
+
+
+```{r gt-table datapres}
+row.names(DATA)=c(
+      "1988",
+      "1989",
+      "1990",
+      "1991",
+      "1992",
+      "1993",
+      "1994",
+      "1995",
+      "1996",
+      "1997",
+      "1998",
+      "1999",
+      "2000",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022"
+    )
+table.donnee = DATA%>%
+  gt(
+    rowname_col =c(
+      "1988",
+      "1989",
+      "1990",
+      "1991",
+      "1992",
+      "1993",
+      "1994",
+      "1995",
+      "1996",
+      "1997",
+      "1998",
+      "1999",
+      "2000",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022"
+    ),
+    rownames_to_stub=TRUE
+  )%>%
+  tab_header(title = md("Tableau des données brutes"))%>%
+  tab_stubhead(
+    label = md("**Year**")
+  ) %>%
+  tab_source_note(
+    source_note = md("**Source:** Banque de la republique d'Haiti")
+  )%>%
+  tab_options(
+    table.font.size = px(24),
+    container.width=6000,
+    container.height = 6000
+  )
+
+table.donnee %>%
+  gtsave(filename = "./outputs/table_donnee_brute.png", expand=10)
+
+```
+
+```{r res table donnee brute, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/table_donnee_brute.png')
+```
+
+
+## Tableau Presentant les Donnees en Logarithme Neperien
+
+
+```{r gt-table logdatapres}
+row.names(LDATA) =c(
+      "1988",
+      "1989",
+      "1990",
+      "1991",
+      "1992",
+      "1993",
+      "1994",
+      "1995",
+      "1996",
+      "1997",
+      "1998",
+      "1999",
+      "2000",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022"
+    )
+L.table.donnee=LDATA%>%
+  gt(
+    rowname_col  =c(
+      "1988",
+      "1989",
+      "1990",
+      "1991",
+      "1992",
+      "1993",
+      "1994",
+      "1995",
+      "1996",
+      "1997",
+      "1998",
+      "1999",
+      "2000",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022"
+    ),
+    rownames_to_stub=TRUE
+  )%>%
+  tab_header(title = md("Tableau des donnees en Logarithm Neperien"))%>%
+  tab_stubhead(
+    label = md("**Year**")
+  ) %>%
+  tab_source_note(
+    source_note = md("**Source:** Banque de la republique d'Haiti")
+  )%>%
+  tab_options(
+    table.font.size = px(24),
+    container.width=6000,
+    container.height = 6000
+  )
+
+
+L.table.donnee  %>%
+  gtsave(filename = "./outputs/table_donnee.png", expand=10)
+
+```
+
+```{r res table donnee, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/table_donnee.png')
+```
+
+
+```{r setup time series format, eval = T, echo=F,warning = T, message = F}
+LDATA_TS = ts(LDATA,start=c(1988),end=c(2022),frequency = 1)
+DATA_TS = ts(DATA,start=c(1988),end=c(2022),frequency = 1)
+```
+
+# Analyse graphiques evolution des series allant de 1988 a 2022
+
+## Taux de Change
+```{r tx.c brut plot}
+
+ts_plot(DATA_TS[,1],title="Taux de change",
+  Xgrid=T,
+  Ygrid=T,
+  type = "single",
+  line.mode = "lines+markers",
+  color = "green"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="tx.change"
+    )
+  )
+)
+```
+
+## Importation
+```{r Imp brut plot}
+ts_plot(DATA_TS[,2],title="Importation",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="imp"
+    )
+  )
+)
+```
+
+## Exportation
+```{r exp brut plot}
+ts_plot(DATA_TS[,3],title="Exportation",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+  color = "red"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="exp"
+    )
+  )
+)
+```
+
+## PIB
+```{r pib brut data plot}
+ts_plot(DATA_TS[,4],title="PIB",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib"
+    )
+  )
+)
+```
+
+## PIB USA
+```{r pib.usa brut plot}
+ts_plot(DATA_TS[,5],title="PIB USA",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib.usa"
+    )
+  )
+)
+```
+
+## IPc
+```{r ipc brut plot}
+ts_plot(DATA_TS[,6],title="IPC",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="ipc"
+    )
+  )
+)
+
+```
+
+# Analyse graphiques evolution des series en Logarithme Neperien allant de 1988 a 2022
+
+## Taux de Change
+```{r tx.c LN plot}
+
+ts_plot(LDATA_TS[,1],title="Taux de change",
+  Xgrid=T,
+  Ygrid=T,
+  type = "single",
+  line.mode = "lines+markers",
+  color = "green"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="tx.change"
+    )
+  )
+)
+```
+
+## Importation
+```{r Imp LN plot}
+ts_plot(LDATA_TS[,2],title="Importation",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="imp"
+    )
+  )
+)
+```
+
+## Exportation
+```{r exp LN plot}
+ts_plot(LDATA_TS[,3],title="Exportation",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+  color = "red"
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="exp"
+    )
+  )
+)
+```
+
+## PIB
+```{r pib LN data plot}
+ts_plot(LDATA_TS[,4],title="PIB",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib"
+    )
+  )
+)
+```
+
+## PIB USA
+```{r pib.usa LN plot}
+ts_plot(LDATA_TS[,5],title="PIB USA",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="pib.usa"
+    )
+  )
+)
+```
+
+## IPc
+```{r ipc LN plot}
+ts_plot(LDATA_TS[,6],title="IPC",
+  Xgrid=T,
+  Ygrid=T,
+  line.mode = "lines+markers",
+  type = "single",
+)%>%
+plotly::layout(
+  yaxis=list(
+    showticklabels=F
+  ),
+  legend=list(
+    title=list(
+      text="ipc"
+    )
+  )
+)
+
+```
+
+# Choix de la Transformation en Log des series
+
+## Litterature des series en Log
+
+
+Dans la littérature économétrique sur les séries temporelles, la transformation en logarithme naturel (LN) est souvent utilisée pour plusieurs raisons principales :
+
+
+1. **Stabilisation de la variance** : Les séries temporelles peuvent souvent présenter des variations importantes dans leur variance au fil du temps, ce qui peut rendre difficile l'application de techniques statistiques classiques. En prenant le logarithme des valeurs, on réduit généralement l'amplitude des variations de la série, ce qui peut rendre la variance plus stable et faciliter l'analyse.
+
+
+2. **Linéarisation des tendances multiplicatives** : Si une série temporelle présente une tendance qui augmente ou diminue de manière exponentielle, prendre le logarithme peut linéariser cette tendance, ce qui permet d'appliquer des modèles linéaires plus simples et plus interprétables. Par exemple, si une série a une croissance exponentielle, la transformation en logarithme peut la transformer en une croissance linéaire.
+
+
+3. **Interprétation des variations relatives** : En prenant le logarithme des valeurs, les variations absolues dans les séries temporelles sont transformées en variations relatives, ce qui peut être plus pertinent dans certains contextes économiques. Par exemple, une variation de 0,1 sur une série avec une valeur initiale de 1 aura un effet différent de la même variation sur une série avec une valeur initiale de 100. Les transformations en logarithme permettent de rendre ces variations comparables et plus facilement interprétables.
+
+
+4. **Normalisation des distributions** : Dans certains cas, les données peuvent être fortement asymétriques ou présenter des distributions non normales. La transformation en logarithme peut aider à se rapprocher d'une distribution normale, ce qui peut être utile pour l'application de certaines techniques statistiques qui supposent une distribution normale des données.
+
+
+En résumé, les transformations en logarithme sont largement utilisées dans l'analyse des séries temporelles pour stabiliser la variance, linéariser les tendances, faciliter l'interprétation des variations relatives et normaliser les distributions, ce qui rend l'analyse et la modélisation des données plus robustes et interprétables.
+
+# Analyse Descriptive des Series en transformation LN
+
+## Indicateurs statistiques des variables utilisees dans la modelisation econometrique
+
+```{r descriptive}
+LDATA_DESCRIPTION = psych::describe(LDATA)
+LDATA_DESCRIPTION = subset(LDATA_DESCRIPTION, select=-c(vars,n,trimmed,mad,range,se))
+LDATA_DESCRIPTION = rename(LDATA_DESCRIPTION, "std. dev."= sd, "skewness"=skew)
+```
+
+```{r jacques.Bera}
+LJB_txc = jarque.bera.test(LDATA$tx.change)
+LJB_imp = jarque.bera.test(LDATA$imp)
+LJB_exp = jarque.bera.test(LDATA$exp)
+LJB_pib = jarque.bera.test(LDATA$pib)
+LJB_pibusa = jarque.bera.test(LDATA$pib.usa)
+LJB_ipc = jarque.bera.test(LDATA$ipc)
+
+LND = data.frame(
+  Jarque.Bera=c(
+    LJB_txc$statistic,
+    LJB_imp$statistic,
+    LJB_exp$statistic,
+    LJB_pib$statistic,
+    LJB_pibusa$statistic,
+    LJB_ipc$statistic
+  ), 
+  Probability=c(
+    LJB_txc$p.value,
+    LJB_imp$p.value,
+    LJB_exp$p.value,
+    LJB_pib$p.value,
+    LJB_pibusa$p.value,
+    LJB_ipc$p.value
+  )
+)
+row.names(LND) = c("Taux.Change","Importation","Exportation","PIB","PIB.USA","IPC")
+```
+
+```{r merge}
+LDATA_DESCRIPTION$Jarque.Bera = LND$Jarque.Bera
+LDATA_DESCRIPTION$Probability = LND$Probability
+row.names(LDATA_DESCRIPTION) = c("Taux.Change","Importation","Exportation","PIB","PIB.USA","IPC")
+```
+
+
+
+```{r gen table description}
+DTD = LDATA_DESCRIPTION %>% gt(
+  rowname_col = c("Taux.Change","Importation","Exportation","PIB","PIB.USA","IPC"),
+  rownames_to_stub = T
+)%>%
+  #tab_header(title = md("**Table 3** Indicateurs statistiques des variables utilisees dans la modelisation econometrique")) %>%
+  tab_source_note(
+    source_note = md("*Note: Observations= 35, p-value treshold=0.05*")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Indicateurs calcules par l'auteur avec R")
+  )
+  
+DTD  %>%
+  gtsave(filename = "./outputs/table_description.png", expand=10)
+
+```
+
+```{r table description, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/table_description.png')
+``` 
+
+
+## Jarque Bera test
+
+**Test d'Hypothèse de Jarque-Bera :**
+
+Hypothèse Nulle (H₀) : Les données proviennent d'une distribution normale.
+
+Hypothèse Alternative (H₁) : Les données ne proviennent pas d'une distribution normale.
+
+**Statistique de Jarque-Bera :**
+
+La statistique de Jarque-Bera (JB) est définie comme suit :
+
+$$JB = \frac{n}{6} \left( S^2 + \frac{(K-3)^2}{4} \right)$$
+
+**Où :**
+
+- **n** est la taille de l'échantillon.
+- **S** est le coefficient d'asymétrie de l'échantillon.
+- **K** est le coefficient d'aplatissement de l'échantillon.
+
+Cette statistique suit une distribution du chi carré avec 2 degrés de liberté sous l'hypothèse nulle (H₀).
+
+## Litterature du Test de Jarque Bera
+
+Le test de Jarque-Bera est un test statistique utilisé pour évaluer si un échantillon de données donné présente un coefficient d'asymétrie et un coefficient d'aplatissement qui sont approximativement distribués selon une loi normale, ce qui est une hypothèse courante dans de nombreuses techniques statistiques.
+
+1. Comparaison de la statistique de test à la valeur critique :
+
+La statistique de test de Jarque-Bera suit une distribution du chi carré avec 2 degrés de liberté sous l'hypothèse nulle. Par conséquent, vous comparez la statistique de test calculée à la valeur critique de la distribution du chi carré avec 2 degrés de liberté à votre niveau de signification choisi (par exemple, 0,05 ou 0,01).
+
+2. Prise de décision :
+
+- Si la statistique de test calculée est supérieure à la valeur critique, vous rejetez l'hypothèse nulle, concluant que les données ne proviennent pas d'une distribution normale.
+
+- Si la statistique de test calculée est inférieure ou égale à la valeur critique, vous ne rejetez pas l'hypothèse nulle, ce qui indique qu'il n'y a pas suffisamment de preuves pour conclure que les données ne proviennent pas d'une distribution normale.
+
+## Rappel sur la notion de P-Value
+
+Dans le cadre du test de Jarque-Bera, la p-valeur est une mesure cruciale pour interpréter les résultats du test. Voici comment interpréter la p-valeur :
+
+Si la p-valeur est inférieure au seuil de signification (α) :
+
+Cela signifie que la probabilité d'observer les données (ou des données encore plus extrêmes) sous l'hypothèse nulle (que les données proviennent d'une distribution normale) est faible.
+Vous rejetez alors l'hypothèse nulle au niveau de signification α. En d'autres termes, vous avez suffisamment de preuves pour conclure que les données ne suivent pas une distribution normale en termes d'asymétrie et/ou d'aplatissement.
+Si la p-valeur est supérieure au seuil de signification (α) :
+
+Cela signifie que la probabilité d'observer les données (ou des données encore plus extrêmes) sous l'hypothèse nulle est élevée.
+Vous ne rejetez pas l'hypothèse nulle au niveau de signification α. En d'autres termes, vous ne disposez pas de suffisamment de preuves pour conclure que les données ne suivent pas une distribution normale en termes d'asymétrie et/ou d'aplatissement.
+En résumé :
+
+Une p-valeur faible suggère des preuves en faveur du rejet de l'hypothèse nulle, indiquant que les données ne suivent probablement pas une distribution normale.
+Une p-valeur élevée suggère un manque de preuves pour rejeter l'hypothèse nulle, ce qui signifie que les données pourraient suivre une distribution normale.
+Il est important de choisir un seuil de signification approprié (α) avant d'interpréter la p-valeur. Les valeurs typiques pour α sont 0,05 ou 0,01, mais cela dépend souvent du contexte de l'analyse et des normes de l'industrie.
+
+## Conclusion du Test de Jarque Bera des series
+
+> On ne peut rejeter l'hypothese nulle pour aucune des series parce que $p \ge \alpha, \alpha = 0.05$
+
+
+# La stationarite des Variable (LN)
+
+## Procedure
+
+La procedure d'etude de la stationarite demande que l'on procede de stationarite pour les series en niveau. Ensuite on passe le filtre de difference sur les series et on recommence les tests.
+
+## Filtre de difference
+
+Le filtre de différence est une opération couramment utilisée dans l'analyse des séries chronologiques pour transformer une série en une série stationnaire en différenciant les observations. La différenciation implique de soustraire chaque observation de la série par son observation précédente. Cette opération aide à éliminer les tendances et les structures temporelles de la série, rendant ainsi la série stationnaire. Voici comment le filtre de différence est mathématiquement représenté :
+
+Si nous avons une série chronologique $y_t$ pour $t = 1, 2, ..., T$, alors la série de différences premières, notée $\Delta y_t$, est définie comme :
+
+$$\Delta y_t = y_t - y_{t-1}$$
+
+Cette équation montre que chaque observation $y_t$est soustraite de son observation précédente $y_{t-1}$ pour obtenir la différence première $\Delta y_t$. Cela peut être répété pour chaque observation dans la série, créant ainsi une nouvelle série de différences premières avec une longueur de $T - 1$, car la première observation n'a pas de valeur précédente à soustraire.
+
+L'opération de différenciation peut être répétée plusieurs fois si nécessaire pour obtenir une série encore plus stationnaire, en soustrayant chaque observation par son observation précédente dans la série de différences premières. La série résultante est appelée série de différences d'ordre $d$, où $d$ représente le nombre de différences effectuées.
+
+Voici un exemple d'équation LaTeX pour représenter la série de différences premières :
+Cette équation peut être utilisée dans les documents LaTeX pour représenter mathématiquement le concept de différenciation dans l'analyse des séries chronologiques.
+
+# Resultats et Hypotheses test Stationarites
+
+## Hypotheses pour les tests de stationnarite
+
+Bien sûr, voici les hypothèses nulles et alternatives pour les tests ADF, KPSS et Phillips-Perron :
+
+1. **Test de Dickey-Fuller Augmenté (ADF)** :
+   - Hypothèse Nulle (H0) : La série chronologique possède une racine unitaire, ce qui signifie qu'elle n'est pas stationnaire.
+   - Hypothèse Alternative (H1) : La série chronologique ne possède pas de racine unitaire, ce qui signifie qu'elle est stationnaire.
+
+2. **Test KPSS (Kwiatkowski-Phillips-Schmidt-Shin)** :
+   - Hypothèse Nulle (H0) : La série chronologique est stationnaire.
+   - Hypothèse Alternative (H1) : La série chronologique n'est pas stationnaire.
+
+3. **Test Phillips-Perron** :
+   - Hypothèse Nulle (H0) : La série chronologique possède une racine unitaire, ce qui signifie qu'elle n'est pas stationnaire.
+   - Hypothèse Alternative (H1) : La série chronologique ne possède pas de racine unitaire, ce qui signifie qu'elle est stationnaire.
+
+Il est important de noter que les conclusions des tests dépendent de la p-value associée. Si la p-value est inférieure à un certain seuil (généralement 0,05), on rejette l'hypothèse nulle au profit de l'hypothèse alternative, ce qui signifie que la série est considérée comme stationnaire. Sinon, si la p-value est supérieure au seuil, on ne peut pas rejeter l'hypothèse nulle, ce qui indique que la série n'est pas stationnaire.
+
+
+## Tableau Presentant les resultats des tests de stationnarite
+
+```{r gen res stationarity test}
+
+stationarity_tr = read_xlsx("./stationarity.xlsx")
+
+
+table_stat_tr = stationarity_tr %>%
+  gt()%>%
+  #tab_header(
+  #  title = md("**Table 5** Resultats des test de stationarite utilises")
+  #) %>%
+  tab_source_note(
+    source_note = md("*Note: Observations= 35, p-value treshold=0.05*")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Indicateurs calcule par l'auteur avec R")
+  ) %>%
+  tab_footnote(
+    footnote = md("I(0) signifie que la série est stationnaire alors que I(1) signifie que la série est intégrée d'ordre 1 (non-stationnaire), c'est-
+à-dire elle devient stationnaire en différence première."),
+    locations = cells_body(
+      columns = Constat
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.1 veut dire p.value >= 0.1"),
+    locations = cells_body(
+      columns = KPSS,
+      rows = KPSS==0.1
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.1 veut dire p.value >= 0.1"),
+    locations = cells_body(
+      columns = kpss,
+      rows = kpss==0.1
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.01 veut dire p.value <= 0.01"),
+    locations = cells_body(
+      columns = ADF,
+      rows = ADF==0.01
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.01 veut dire p.value <= 0.01"),
+    locations = cells_body(
+      columns = adf,
+      rows = adf==0.01
+    )
+  ) %>%
+  tab_footnote(
+    footnote = md("p.value = 0.01 veut dire p.value <= 0.01"),
+    locations = cells_body(
+      columns = pp,
+      rows = pp==0.01
+    )
+  ) %>%
+  tab_spanner(
+    label = "Niveau",
+    columns = c(ADF, KPSS, PP)
+  ) %>%
+  tab_spanner(
+    label = "Difference Premiere",
+    columns = c(adf, kpss, pp)
+  ) %>%
+  gtsave(filename = "./outputs/res_stationarity.png", expand=10)
+
+```
+
+```{r res table stationarity, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/res_stationarity.png')
+```
+
+# Maximum Lag Analysis
+
+## Information Criterion
+Les critères d'information sont des outils utilisés en statistiques pour sélectionner un modèle parmi un ensemble de modèles candidats. L'objectif est de choisir le modèle qui offre un bon équilibre entre l'ajustement aux données et la complexité du modèle. Les deux critères d'information les plus couramment utilisés sont le Critère d'Information Akaike (AIC) et le Critère d'Information Bayésien (BIC). Voici une explication de ces deux critères :
+
+1. **Critère d'Information Akaike (AIC)** :
+   - Le Critère d'Information Akaike (AIC) a été développé par Hirotugu Akaike dans les années 1970. Il est basé sur la théorie de l'information et est largement utilisé pour comparer des modèles statistiques.
+   - L'AIC est calculé à partir de la fonction de vraisemblance du modèle et de sa complexité, mesurée par le nombre de paramètres du modèle. L'AIC est défini comme :
+   $$\text{AIC} = -2 \times \text{log-vraisemblance maximisée} + 2 \times \text{nombre de paramètres du modèle}$$
+   - Le modèle avec le plus faible AIC est considéré comme le meilleur ajustement parmi les modèles considérés.
+
+2. **Critère d'Information Bayésien (BIC)** :
+   - Le Critère d'Information Bayésien (BIC), également connu sous le nom de Critère de Schwarz, a été développé par Gideon Schwarz dans les années 1970. Il est basé sur la théorie bayésienne de la probabilité.
+   - Comme l'AIC, le BIC prend en compte à la fois l'ajustement aux données et la complexité du modèle. Cependant, le BIC pénalise la complexité du modèle plus fortement que l'AIC.
+   - Le BIC est calculé comme suit :
+   $$\text{BIC} = -2 \times \text{log-vraisemblance maximisée} + \log(n) \times \text{nombre de paramètres du modèle}$$
+   où $ n $ est la taille de l'échantillon.
+   - Comme pour l'AIC, le modèle avec le plus faible BIC est considéré comme le meilleur ajustement parmi les modèles considérés.
+
+En résumé, les critères d'information, tels que l'AIC et le BIC, fournissent une approche objective pour comparer différents modèles statistiques en tenant compte à la fois de leur ajustement aux données et de leur complexité. Ces critères sont largement utilisés dans la sélection de modèles en statistiques et en apprentissage automatique.
+
+```{r les bases de notre modele}
+application.du.filtre = lapply(LDATA, diff)
+LFILTER_DATA = as.data.frame(application.du.filtre)
+
+
+
+it.series <- cbind(taux.change = LDATA$tx.change, importation = LDATA$imp,pib=LDATA$pib,pib.usa=LDATA$pib.usa,ipc=LDATA$ipc)
+et.series <- cbind(taux.change = LDATA$tx.change, exportation = LDATA$exp,pib=LDATA$pib,pib.usa=LDATA$pib.usa,ipc=LDATA$ipc)
+it.series <- as.data.frame(it.series)
+et.series <- as.data.frame(et.series)
+
+
+
+filtered.it.series <- cbind(taux.change = LFILTER_DATA$tx.change, importation = LFILTER_DATA$imp,pib=LFILTER_DATA$pib,pib.usa=LFILTER_DATA$pib.usa,ipc=LFILTER_DATA$ipc)
+filtered.et.series <- cbind(taux.change = LFILTER_DATA$tx.change, exportation = LFILTER_DATA$exp,pib=LFILTER_DATA$pib,pib.usa=LFILTER_DATA$pib.usa,ipc=LFILTER_DATA$ipc)
+filtered.it.series <- as.data.frame(filtered.it.series)
+filtered.et.series <- as.data.frame(filtered.et.series)
+```
+
+## Max Lag Importation
+```{r it ardlboundorder}
+orders.it.fs = ardlBoundOrders(
+  data = it.series,
+  formula = importation~taux.change+pib+pib.usa+ipc,
+  ic="AIC",
+  max.p = 3 ,
+  max.q = 3,
+  FullSearch = TRUE
+)
+```
+
+```{r frame it}
+ic.it = as.data.frame(orders.it.fs$p)
+ic.it$importation = c(orders.it.fs$q)
+ic.it$aic = c(orders.it.fs$min.Stat)
+```
+
+```{r table ic.it}
+table.ic.it  = ic.it%>%
+  gt()%>%
+  tab_header(
+    title = md("Top resultat des modeles optimaux suivant le critere de minimisation d'AIC")
+  )%>%
+  cols_align(
+    align = "center",
+    columns = c(importation, taux.change,pib, pib.usa,ipc,aic)
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote( footnote = md("Akaike Information Criteria"),
+    locations = cells_body(
+      columns = aic
+    )
+  )
+
+
+
+table.ic.it %>%
+    gtsave(filename = "./outputs/optimal_selection_AIC_IT.png", expand=10)
+
+```
+
+```{r res table ic.it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/optimal_selection_AIC_IT.png')
+```
+
+
+
+
+## Max Lag Exportation
+
+```{r et ardlboundorder}
+orders.et.fs = ardlBoundOrders(
+  data = et.series,
+  formula = exportation~taux.change+pib+pib.usa+ipc,
+  ic="AIC",
+  max.p = 3 ,
+  max.q = 3,
+  FullSearch = TRUE
+)
+```
+
+```{r frame et}
+ic.et = as.data.frame(orders.et.fs$p)
+ic.et$exportation = c(orders.et.fs$q)
+ic.et$aic = c(orders.et.fs$min.Stat)
+```
+
+```{r table ic.et }
+table.ic.et  = ic.et%>%
+  gt()%>%
+  tab_header(
+    title = md("Top des modeles optimaux suivant le critere de minimisation d'AIC")
+  )%>%
+  cols_align(
+    align = "center",
+    columns = c(exportation, taux.change,pib,pib.usa,ipc,aic)
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("Akaike Information Criteria"),
+    locations = cells_body(
+      columns = aic
+    )
+  )
+
+
+
+table.ic.et %>%
+    gtsave(filename = "./outputs/optimal_selection_AIC_ET.png", expand=10)
+```
+
+```{r res table.ic.et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/optimal_selection_AIC_ET.png')
+```
+
+
+# Cointegration
+
+## Peasaran cointegration test (Bound test)
+
+Considérons le modèle ARDL suivant :
+
+$$ \Delta Y_t = \alpha + \beta_1 Y_{t-1} + \beta_2 \Delta Y_{t-1} + \beta_3 \Delta Y_{t-2} + \ldots + \beta_p \Delta Y_{t-p} + \gamma_1 X_{1,t-1} + \gamma_2 \Delta X_{1,t-1} + \ldots + \gamma_q \Delta X_{1,t-q} + \epsilon_t $$
+
+Le ARDL Bound Test implique deux tests de nullité :
+
+1. **Pratiquement un test de Wald:**
+   - Nullité : $\beta_{1} = \beta_{2} = \ldots = \beta_{p} = 0$ (pas de cointégration)
+   - Alternative : Au moins un des coefficients $\beta_{i}$ est différent de zéro (cointégration)
+   - Test statistique : F-test
+   
+```{r boundtest_interp, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./interpretation_boundtest.png')
+```
+
+## test cointegration peasaran (Bound test) IT modele
+
+Pesaran et al. [12] define five different cases according to the incorporation of intercept (μ0) and trend (μ1) coefficients in the error correction term. Case 1: No intercept and no trend. Case 2: Restricted intercept and no trend. Case 3: Unrestricted intercept and no trend. Case 4: Unrestricted intercept and restricted trend. Case 5: Unrestricted intercept and unrestricted trend.
+
+> 4eme cas retenu
+
+```{r boundtest_it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./peasaran.coint.test_it.png')
+```
+
+
+## test cointegration peasaran (Bound test) ET modele
+
+Pesaran et al. [12] define five different cases according to the incorporation of intercept (μ0) and trend (μ1) coefficients in the error correction term. Case 1: No intercept and no trend. Case 2: Restricted intercept and no trend. Case 3: Unrestricted intercept and no trend. Case 4: Unrestricted intercept and restricted trend. Case 5: Unrestricted intercept and unrestricted trend.
+
+> 3eme cas retenu
+
+```{r boundtest_et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./peasaran.coint.test_et.png')
+```
+
+## conclusion Cointegration  test
+
+1. Modele IT:
+  - ECM avec intercept non restreint et une tendance restreinte
+2. Modele ET:
+  -ECM avec intercept non restreint et sans tendance
+
+# Modelisation
+
+## modele it
+
+```{r p+1}
+P.it = data.frame(orders.it.fs$q,orders.it.fs$p)+1
+P.et = data.frame(orders.et.fs$q,orders.et.fs$p)+1
+```
+
+```{r it.modele, include=F}
+coint.it = ardlBound(
+  data = it.series,
+  formula = importation ~ taux.change+pib+pib.usa+ipc,
+  p = P.it,
+  ECM=TRUE,
+  stability = TRUE,
+  case = 4
+)
+```
+
+
+
+> Error Correction terme = `r coint.it$ECM$EC.beta`
+
+```{r ecm.it}
+summary(coint.it$ECM$EC.model)
+```
+
+
+## modele et
+
+```{r et.modele, include=F}
+coint.et  = ardlBound(
+  data = et.series,
+  formula = exportation ~ taux.change+pib+pib.usa+ipc,
+  p = P.et,
+  ECM=TRUE,
+  stability = TRUE,
+  case = 3
+)
+```
+
+
+> Error Correction terme = `r coint.et$ECM$EC.beta`
+
+```{r cm.et}
+summary(coint.et$ECM$EC.model)
+```
+
+# Validation des models
+
+## Validation modeles it
+
+```{r val.it}
+val.it = data.frame(
+  test_name = c(
+    "Breush-Pagan test" ,
+    "Breush-Godfrey test",
+    "Ljung-Box test",
+    "Shapiro-Wilk test",
+    "Ramsey test"
+  ),
+  statistic_test = c(
+    coint.it$bp$statistic,
+    coint.it$bg$statistic,
+    coint.it$lb$statistic,
+    coint.it$sp$statistic,
+    1.8727
+  ),
+  pvalue= c(
+    coint.it$bp$p.value,
+    coint.it$bg$p.value,
+    coint.it$lb$p.value,
+    coint.it$sp$p.value,
+    0.196
+  ),
+  H0 = c(
+    "Homoscedasticity is present (the residuals are distributed with equal variance)",
+    "There is no autocorrelation in the residuals",
+    "The model does not exhibit lack of fit.(no serial correlation in the residuals)",
+    "The residuals are normally distributed",
+    "modele est bien specifie et aucune variable n'a ete omise"
+  )
+)
+```
+
+
+```{r valtable it }
+table.val.it  = val.it%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de validation du modele")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.val.it %>%
+    gtsave(filename = "./outputs/VAL.IT.png", expand=10)
+```
+
+```{r restable.it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/VAL.IT.png')
+```
+
+## Validation modeles et
+
+```{r val.et}
+val.et = data.frame(
+  test_name = c(
+    "Breush-Pagan test" ,
+    "Breush-Godfrey test",
+    "Ljung-Box test",
+    "Shapiro-Wilk test",
+    "Ramsey test"
+  ),
+  statistic_test = c(
+    coint.et$bp$statistic,
+    coint.et$bg$statistic,
+    coint.et$lb$statistic,
+    coint.et$sp$statistic,
+    3.1445
+  ),
+  pvalue= c(
+    coint.et$bp$p.value,
+    coint.et$bg$p.value,
+    coint.et$lb$p.value,
+    coint.et$sp$p.value,
+    0.07449
+  ),
+  H0 = c(
+    "Homoscedasticity is present (the residuals are distributed with equal variance)",
+    "There is no autocorrelation in the residuals",
+    "The model does not exhibit lack of fit.(no serial correlation in the residuals)",
+    "The residuals are normally distributed",
+    "modele est bien specifie et aucune variable n'a ete omise"
+  )
+)
+```
+
+
+```{r val.table ic.et }
+table.val.et  = val.et%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de validation du modele")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.val.et %>%
+    gtsave(filename = "./outputs/VAL.ET.png", expand=10)
+```
+
+```{r restable.et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/VAL.ET.png')
+```
+
+## CUSUM it 
+
+```{r cusum.it, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./cusum_it.modele.png')
+```
+
+## CUSUM et 
+
+```{r cusum.et, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./cusum_et.modele.png')
+```
+
+# Test additionnelle
+
+## test de Normalite des series d'interet
+
+```{r shapiro.series}
+i.sp = shapiro.test(it.series$importation)
+e.sp = shapiro.test(et.series$exportation)
+t.sp = shapiro.test(et.series$taux.change)
+
+shap.series_int = data.frame(
+  Series_name = c(
+    "Importation" ,
+    "exportation",
+    "Taux de Change"
+  ),
+  statistic_test = c(
+    i.sp$statistic,
+    e.sp$statistic,
+    t.sp$statistic
+  ),
+  pvalue= c(
+    i.sp$p.value,
+    e.sp$p.value,
+    t.sp$p.value
+  ),
+  Conclusion = c(
+    "La serie ne suit pas une distribution normal",
+    "La serie ne suit pas une distribution normal",
+    "La serie ne suit pas une distribution normal"
+  )
+)
+```
+
+
+```{r table shapiro.series}
+table.shap.series_int  = shap.series_int%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de normalite pour ces series")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.shap.series_int %>%
+    gtsave(filename = "./outputs/shapiro_series_test.png", expand=10)
+```
+
+```{r shap.series_g, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/shapiro_series_test.png')
+```
+
+
+## Test de Kendall
+
+Donc on peut proceder a un test de correlation de Kendall.
+
+```{r kendall}
+ken.it = cor.test(it.series$taux.change, it.series$importation,method ="kendall",exact=F)
+ken.et = cor.test(et.series$taux.change, et.series$exportation,method ="kendall", exact = F)
+
+kendall_all =data.frame(
+  Series_name = c(
+    "Importation et taux de change" ,
+    "exportation et taux de change"
+  ),
+  statistic_test = c(
+    ken.it$statistic,
+    ken.et$statistic
+  ),
+  pvalue= c(
+    ken.it$p.value,
+    ken.et$p.value
+  ),
+  tau = c(
+    ken.it$estimate,
+    ken.et$estimate
+  ),
+  Conclusion = c(
+    "Tau est non null, Il y a correlation",
+    "Tau est non null, Il y a correlation"
+  )
+)
+```
+
+
+```{r table kendall}
+table.kendall_all  = kendall_all%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de correlation de Kendall")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.kendall_all %>%
+    gtsave(filename = "./outputs/kendall_test.png", expand=10)
+```
+
+```{r kendall_g, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/kendall_test.png')
+```
+
+## Test de Causalite de Ganger
+
+```{r granger}
+g.it = lmtest::grangertest(importation~taux.change,data=it.series,order=3)
+g.ti = lmtest::grangertest(taux.change~importation,data=it.series,order=3)
+
+g.et = lmtest::grangertest(exportation~taux.change,data=et.series,order=3)
+g.te = lmtest::grangertest(taux.change~exportation,data=et.series,order=3)
+
+
+granger_all = data.frame(
+  Series_name = c(
+    "Causalite Imp ~ Tx.c" ,
+    "Causalite Tx.c ~ Imp",
+    "Causalite exp ~ Tx.c" ,
+    "Causalite Tx.c ~ exp"
+  ),
+  statistic_test = c(
+    g.it$F[2],
+    g.ti$F[2],
+    g.et$F[2],
+    g.te$F[2]
+  ),
+  pvalue= c(
+    g.it$`Pr(>F)`[2],
+    g.ti$`Pr(>F)`[2],
+    g.et$`Pr(>F)`[2],
+    g.te$`Pr(>F)`[2]
+  ),
+  Conclusion = c(
+    "H0: pas de causalite",
+    "H0: pas de causalite",
+    "H0: pas de causalite",
+    "H0: pas de causalite"
+  )
+)
+```
+
+
+```{r table granger}
+table.granger_all  = granger_all%>%
+  gt()%>%
+  tab_header(
+    title = md("Resultat des tests de causalite de granger")
+  )%>%
+  tab_source_note(
+    source_note = md("**Source:** Tableau elabore par l'auteur avec R")
+  ) %>%
+  tab_footnote(footnote = md("P-Value, <0.05 H0 est rejete"),
+    locations = cells_body(
+      columns = pvalue
+    )
+  )
+
+
+
+table.granger_all %>%
+    gtsave(filename = "./outputs/granger_test.png", expand=10)
+```
+
+```{r granger_g, echo=FALSE, out.width='100%'}
+knitr::include_graphics('./outputs/granger_test.png')
 ```
 
